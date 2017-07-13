@@ -2,6 +2,12 @@ require 'bootstrap/version'
 require 'popper_js'
 
 module Bootstrap
+  module JekyllInjector
+    def user_sass_load_paths
+      super + [Bootstrap.stylesheets_path]
+    end
+  end
+
   class << self
     # Inspired by Kaminari
     def load!
@@ -13,6 +19,8 @@ module Bootstrap
         register_hanami
       elsif sprockets?
         register_sprockets
+      elsif jekyll?
+        inject_into_jekyll
       end
 
       configure_sass
@@ -36,6 +44,10 @@ module Bootstrap
     end
 
     # Environment detection helpers
+    def jekyll?
+      defined?(::Jekyll::Converters::Scss)
+    end
+
     def sprockets?
       defined?(::Sprockets)
     end
@@ -53,6 +65,10 @@ module Bootstrap
     end
 
     private
+
+    def inject_into_jekyll
+      Jekyll::Converters::Scss.prepend(JekyllInjector)
+    end
 
     def configure_sass
       require 'sass'
